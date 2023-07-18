@@ -1,6 +1,5 @@
 
 #file name depends   clusterGroupName in values-global.yaml
-
 clusterGroup:
   name: hub
   isHubCluster: true
@@ -8,24 +7,42 @@ clusterGroup:
   # is fundamentally insecure
   insecureUnsealVaultInsideCluster: true
 
+
   namespaces:
-  - open-cluster-management. #for ACM
-  - vault
-  - golang-external-secrets
-  - npss-tnc-vms
-  
+  - open-cluster-management #for ACM
+  - openshift-cnv           #for CNV
+  - openshift-local-storage #for LSO
+  - openshift-storage       #for ODF
+  - mano-apps               #for IDM and others
+  - mano-automation         #not used today, but per NPSS
+  # - vault
+  # - golang-external-secrets
+  # - npss-tnc-vms
   subscriptions:
+# Automaticlaly created are: vault-operator-group, npss-tnc-vms-operator-group, golang-externa-secret-operator group:
     acm:
       name: advanced-cluster-management
       namespace: open-cluster-management
-#     disable: true
-
-#    kubevirt-hyperconverged:
-#      name: kubevirt-hyperconverged
-#      namespace: openshift-cnv
-#      source: redhat-operators
-#      channel: stable
-
+      installPlanApproval: Manual
+      channel: release-2.6
+    cnv:
+      name: kubevirt-hyperconverged
+        # name: kubevirt-hyperconverged-group
+      namespace: openshift-cnv 
+      installPlanApproval: Automatic
+      channel: "stable"
+    lso:
+      name: local-storage-operator
+      namespace: openshift-local-storage
+      installPlanApproval: Automatic
+      channel: "stable"
+        # "4.10" 
+    odf:
+      name: odf-operator
+      namespace: openshift-storage
+      installPlanApproval: Automatic
+      channel: "stable-4.10"
+   
   projects:
   - hub
 
@@ -40,6 +57,12 @@ clusterGroup:
         kind: ManagedClusterInfo
         jsonPointers:
           - /spec/loggingCA
+    cnv: 
+      name: cnv
+      namespace: openshift-cnv
+      project: hub
+      path: charts/mgt-hub/syed-cnv
+      kustomize: true
 
     vault:
       name: vault
@@ -52,6 +75,12 @@ clusterGroup:
       namespace: golang-external-secrets
       project: hub
       path: common/golang-external-secrets
+
+    odf: 
+      name: odf
+      namespace: openshift-storage
+      project: hub
+      path: charts/mgt-hub/openshift-data-foundations
 
   imperative:
     # NOTE: We *must* use lists and not hashes. As hashes lose ordering once parsed by helm
